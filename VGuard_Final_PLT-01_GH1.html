@@ -1,0 +1,1200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>V Guard — Scope 3 Data Collection | PLT-01</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --red: #e63329;
+  --red-dark: #b52720;
+  --red-light: #fdecea;
+  --gold: #f5a623;
+  --ink: #151515;
+  --paper: #f7f5f2;
+  --white: #ffffff;
+  --muted: #6b6b6b;
+  --border: #e0dbd4;
+  --green: #16a34a;
+  --green-light: #d1fae5;
+  --blue: #1d4ed8;
+  --amber: #d97706;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: "DM Sans", sans-serif; background: var(--paper); color: var(--ink); min-height: 100vh; }
+
+/* HEADER */
+.header {
+  background: var(--ink);
+  padding: 18px 36px;
+  display: flex; align-items: center; justify-content: space-between;
+  position: sticky; top: 0; z-index: 100;
+  box-shadow: 0 2px 24px rgba(0,0,0,0.5);
+}
+.header-left { display: flex; align-items: center; gap: 16px; }
+.header-titles .company { font-family: "Syne", sans-serif; font-weight: 700; font-size: 1rem; color: white; }
+.header-titles .subtitle { font-size: 0.7rem; color: rgba(255,255,255,0.45); font-weight: 300; margin-top: 2px; }
+.plant-chip {
+  background: var(--red); color: white;
+  font-family: "Syne", sans-serif; font-weight: 700; font-size: 0.78rem;
+  padding: 5px 16px; border-radius: 20px; letter-spacing: 0.08em;
+}
+
+/* PROGRESS */
+.progress-bar-wrap {
+  background: var(--ink);
+  padding: 0 36px 16px;
+  border-bottom: 3px solid var(--red);
+}
+.prog-label { font-size: 0.72rem; color: var(--gold); font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; padding-top: 12px; margin-bottom: 7px; }
+.prog-track { height: 3px; background: rgba(255,255,255,0.12); border-radius: 2px; overflow: hidden; }
+.prog-fill { height: 100%; background: linear-gradient(90deg, var(--red), var(--gold)); border-radius: 2px; transition: width 0.5s ease; width: 0%; }
+
+/* MAIN */
+main { max-width: 960px; margin: 0 auto; padding: 40px 24px 120px; }
+.page-title { font-family: "Syne", sans-serif; font-size: 1.8rem; font-weight: 800; color: var(--ink); margin-bottom: 4px; }
+.page-sub { color: var(--muted); font-size: 0.88rem; font-weight: 300; margin-bottom: 36px; }
+
+/* SECTION ACCORDION */
+.section {
+  background: var(--white);
+  border-radius: 12px;
+  margin-bottom: 16px;
+  border: 1px solid var(--border);
+  box-shadow: 0 2px 10px rgba(0,0,0,0.04);
+  overflow: hidden;
+  animation: fadeUp 0.35s ease both;
+}
+@keyframes fadeUp { from { opacity:0; transform:translateY(14px); } to { opacity:1; transform:translateY(0); } }
+
+.section-header {
+  padding: 18px 24px;
+  display: flex; align-items: center; justify-content: space-between;
+  cursor: pointer; user-select: none;
+  border-bottom: 1px solid transparent;
+  transition: background 0.2s;
+}
+.section-header:hover { background: rgba(0,0,0,0.02); }
+.section-header.open { border-bottom-color: var(--border); }
+
+.section-header-left { display: flex; align-items: center; gap: 14px; }
+.cat-badge {
+  background: var(--ink); color: white;
+  font-family: "Syne", sans-serif; font-size: 0.68rem; font-weight: 700;
+  padding: 4px 10px; border-radius: 4px; letter-spacing: 0.08em; white-space: nowrap;
+}
+.section-title { font-family: "Syne", sans-serif; font-size: 1rem; font-weight: 700; color: var(--ink); }
+.section-sub { font-size: 0.75rem; color: var(--muted); margin-top: 2px; font-weight: 300; }
+.chevron { color: var(--muted); font-size: 0.9rem; transition: transform 0.3s; }
+.section-header.open .chevron { transform: rotate(180deg); }
+
+.section-body { display: none; padding: 22px 24px 26px; }
+.section-body.open { display: block; }
+
+/* FIELDS */
+.fg { display: grid; gap: 14px; }
+.fg-2 { grid-template-columns: 1fr 1fr; }
+.fg-3 { grid-template-columns: 1fr 1fr 1fr; }
+.fg-4 { grid-template-columns: 1fr 1fr 1fr 1fr; }
+.fg-1 { grid-template-columns: 1fr; }
+.span2 { grid-column: span 2; }
+.span3 { grid-column: span 3; }
+
+.field { display: flex; flex-direction: column; gap: 5px; }
+.field label { font-size: 0.72rem; font-weight: 700; color: var(--ink); letter-spacing: 0.05em; text-transform: uppercase; }
+.field label .req { color: var(--red); margin-left: 2px; }
+.field input, .field select, .field textarea {
+  border: 1.5px solid var(--border); border-radius: 7px;
+  padding: 9px 12px; font-family: "DM Sans", sans-serif;
+  font-size: 0.87rem; color: var(--ink); background: var(--paper);
+  transition: border-color 0.2s, box-shadow 0.2s, background 0.2s; width: 100%;
+}
+.field input:focus, .field select:focus, .field textarea:focus {
+  outline: none; border-color: var(--red);
+  box-shadow: 0 0 0 3px rgba(230,51,41,0.1); background: white;
+}
+.field textarea { resize: vertical; min-height: 80px; }
+.field .hint { font-size: 0.7rem; color: var(--muted); }
+
+/* ROW ENTRIES */
+.row-entry {
+  background: var(--paper); border: 1px solid var(--border);
+  border-radius: 8px; padding: 16px; margin-bottom: 12px; position: relative;
+}
+.row-remove {
+  position: absolute; top: 10px; right: 12px;
+  background: none; border: none; color: var(--muted);
+  cursor: pointer; font-size: 0.95rem; padding: 3px 8px;
+  border-radius: 4px; transition: all 0.2s;
+}
+.row-remove:hover { color: var(--red); background: var(--red-light); }
+.add-row-btn {
+  background: none; border: 1.5px dashed var(--border); color: var(--muted);
+  font-family: "DM Sans", sans-serif; font-size: 0.8rem;
+  padding: 8px 16px; border-radius: 7px; cursor: pointer;
+  transition: all 0.2s; display: inline-flex; align-items: center; gap: 6px; margin-top: 4px;
+}
+.add-row-btn:hover { border-color: var(--red); color: var(--red); background: var(--red-light); }
+
+/* SUBMIT BAR */
+.submit-bar {
+  position: fixed; bottom: 0; left: 0; right: 0;
+  background: white; border-top: 1px solid var(--border);
+  padding: 16px 36px; display: flex; align-items: center; justify-content: space-between;
+  box-shadow: 0 -4px 24px rgba(0,0,0,0.08); z-index: 50;
+}
+.submit-info { font-size: 0.82rem; color: var(--muted); }
+.submit-info strong { color: var(--ink); font-family: "Syne", sans-serif; }
+.btn-print {
+  background: white; border: 1.5px solid var(--border); color: var(--ink);
+  font-family: "DM Sans", sans-serif; font-size: 0.83rem; font-weight: 600;
+  padding: 10px 20px; border-radius: 7px; cursor: pointer;
+  display: inline-flex; align-items: center; gap: 6px; transition: all 0.2s;
+}
+.btn-print:hover { border-color: var(--ink); background: var(--ink); color: white; }
+.btn-submit {
+  background: var(--red); color: white; border: none;
+  padding: 12px 40px; font-family: "Syne", sans-serif;
+  font-size: 0.92rem; font-weight: 700; border-radius: 8px;
+  cursor: pointer; letter-spacing: 0.04em;
+  transition: background 0.2s, transform 0.1s;
+  box-shadow: 0 4px 16px rgba(230,51,41,0.35);
+}
+.btn-submit:hover { background: var(--red-dark); transform: translateY(-1px); }
+.btn-submit:active { transform: translateY(0); }
+.btn-submit:disabled { background: #ccc; cursor: not-allowed; box-shadow: none; transform: none; }
+
+/* PREVIEW OVERLAY */
+.preview-overlay {
+  display: none; position: fixed; inset: 0;
+  background: rgba(0,0,0,0.78); z-index: 500;
+  align-items: center; justify-content: center; padding: 20px;
+}
+.preview-overlay.show { display: flex; }
+.preview-card {
+  background: white; border-radius: 16px;
+  width: 100%; max-width: 680px; max-height: 88vh; overflow-y: auto;
+  box-shadow: 0 24px 80px rgba(0,0,0,0.5);
+  animation: popIn 0.3s cubic-bezier(0.175,0.885,0.32,1.275);
+}
+@keyframes popIn { from { transform:scale(0.88); opacity:0; } to { transform:scale(1); opacity:1; } }
+
+.prev-header {
+  background: var(--ink); padding: 20px 28px; border-radius: 16px 16px 0 0;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.prev-header-right { text-align: right; }
+.prev-header-right .ph-label { font-size: 0.7rem; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 0.1em; }
+.prev-header-right .ph-plant { font-family: "Syne", sans-serif; font-size: 0.95rem; font-weight: 700; color: var(--gold); margin-top: 3px; }
+
+.prev-body { padding: 24px 28px; }
+.prev-ref {
+  background: #fff8f0; border: 1.5px solid var(--gold); border-radius: 8px;
+  padding: 10px 18px; margin-bottom: 20px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.prev-ref .ref-label { font-size: 0.68rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; font-weight: 700; }
+.prev-ref .ref-code { font-family: "Syne", sans-serif; font-size: 0.9rem; font-weight: 800; color: var(--red); }
+.prev-ref .ref-ts { font-size: 0.72rem; color: var(--muted); }
+
+.prev-section-title {
+  font-family: "Syne", sans-serif; font-size: 0.68rem; font-weight: 800;
+  color: var(--red); text-transform: uppercase; letter-spacing: 0.12em;
+  margin: 18px 0 10px; padding-bottom: 6px; border-bottom: 2px solid var(--red-light);
+}
+.prev-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 24px; }
+.prev-field { display: flex; flex-direction: column; gap: 2px; }
+.prev-field.full { grid-column: span 2; }
+.pf-label { font-size: 0.67rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; font-weight: 700; }
+.pf-val { font-size: 0.87rem; color: var(--ink); font-weight: 500; }
+
+.prev-cats {
+  background: var(--paper); border-radius: 8px; padding: 14px 18px; margin-top: 16px;
+}
+.prev-cats-title { font-size: 0.7rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 10px; }
+.cat-summary-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 7px 0; border-bottom: 1px solid var(--border); font-size: 0.83rem;
+}
+.cat-summary-row:last-child { border-bottom: none; }
+.cat-summary-name { color: var(--ink); font-weight: 500; }
+.cat-summary-count { font-family: "Syne", sans-serif; font-size: 0.78rem; font-weight: 700; color: var(--red); }
+
+.prev-tco2e {
+  background: var(--ink); border-radius: 10px; padding: 16px 22px; margin-top: 18px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.prev-tco2e .t-label { font-size: 0.78rem; color: rgba(255,255,255,0.55); }
+.prev-tco2e .t-unit { font-size: 0.68rem; color: rgba(255,255,255,0.35); margin-top: 2px; }
+.prev-tco2e .t-val { font-family: "Syne", sans-serif; font-size: 1.6rem; font-weight: 800; color: var(--gold); }
+
+.prev-footer {
+  padding: 16px 28px 20px; display: flex; gap: 12px;
+  align-items: center; justify-content: flex-end;
+  border-top: 1px solid var(--border); background: var(--paper);
+  border-radius: 0 0 16px 16px;
+}
+.btn-cancel {
+  background: white; border: 1.5px solid var(--border); color: var(--muted);
+  font-family: "DM Sans", sans-serif; font-size: 0.85rem; font-weight: 600;
+  padding: 10px 22px; border-radius: 7px; cursor: pointer; transition: all 0.2s;
+}
+.btn-cancel:hover { border-color: var(--red); color: var(--red); }
+.btn-print-card {
+  background: white; border: 1.5px solid var(--border); color: var(--ink);
+  font-family: "DM Sans", sans-serif; font-size: 0.85rem; font-weight: 600;
+  padding: 10px 22px; border-radius: 7px; cursor: pointer;
+  display: inline-flex; align-items: center; gap: 6px; transition: all 0.2s;
+}
+.btn-print-card:hover { background: var(--ink); color: white; border-color: var(--ink); }
+.btn-confirm {
+  background: var(--red); color: white; border: none;
+  padding: 11px 30px; font-family: "Syne", sans-serif;
+  font-size: 0.88rem; font-weight: 700; border-radius: 7px; cursor: pointer;
+  letter-spacing: 0.04em; transition: all 0.2s;
+  box-shadow: 0 4px 14px rgba(230,51,41,0.35);
+}
+.btn-confirm:hover { background: var(--red-dark); }
+.btn-confirm:disabled { background: #ccc; cursor: not-allowed; box-shadow: none; }
+
+/* TOAST */
+.toast {
+  position: fixed; top: 24px; right: 24px; z-index: 999;
+  padding: 13px 22px; border-radius: 10px; font-weight: 600; font-size: 0.88rem;
+  box-shadow: 0 6px 24px rgba(0,0,0,0.18);
+  animation: slideIn 0.3s ease;
+}
+@keyframes slideIn { from { transform:translateX(100%); opacity:0; } to { transform:translateX(0); opacity:1; } }
+.toast.ok { background: #d1fae5; color: #065f46; }
+.toast.err { background: #fee2e2; color: #991b1b; }
+
+/* PRINT */
+@media print {
+  .header, .progress-bar-wrap, .submit-bar, .add-row-btn,
+  .row-remove, .toast, .preview-overlay { display: none !important; }
+  body { background: white; }
+  main { padding: 0; max-width: 100%; }
+  .section { box-shadow: none; border: 1px solid #ccc; break-inside: avoid; }
+  .section-body { display: block !important; }
+  .section-header { cursor: default; }
+  .chevron { display: none; }
+  .field input, .field select, .field textarea {
+    border: none; border-bottom: 1px solid #ccc; border-radius: 0;
+    background: white; padding: 4px 0; font-size: 10pt;
+  }
+  .print-header { display: block !important; text-align: center; margin-bottom: 24px; padding-bottom: 16px; border-bottom: 2px solid #151515; }
+  .print-header h2 { font-size: 14pt; margin-top: 8px; }
+  .print-header p { font-size: 9pt; color: #666; }
+}
+.print-header { display: none; }
+
+@media (max-width: 640px) {
+  .fg-3, .fg-4 { grid-template-columns: 1fr 1fr; }
+  .fg-2 { grid-template-columns: 1fr; }
+  .span2, .span3 { grid-column: span 1; }
+  .header { padding: 14px 18px; }
+  main { padding: 24px 14px 100px; }
+  .submit-bar { padding: 12px 18px; }
+  .prev-grid { grid-template-columns: 1fr; }
+  .prev-field.full { grid-column: span 1; }
+}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="header">
+  <div class="header-left">
+    <img src="data:image/png;base64,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" style="height:46px;width:auto;" alt="V Guard"/>
+    <div class="header-titles">
+      <div class="company">Scope 3 GHG Emissions Data Collection</div>
+      <div class="subtitle">GHG Protocol · SBTi Target Setting · India Operations</div>
+    </div>
+  </div>
+  <div class="plant-chip">PLT-01</div>
+</header>
+
+<!-- PROGRESS -->
+<div class="progress-bar-wrap">
+  <div class="prog-label" id="prog-label">0 of 15 categories filled</div>
+  <div class="prog-track"><div class="prog-fill" id="prog-fill"></div></div>
+</div>
+
+<!-- PRINT HEADER -->
+<div class="print-header" id="print-header">
+  <img src="data:image/png;base64,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" style="height:56px;" alt="V Guard"/>
+  <h2>V Guard Industries — Scope 3 GHG Data Collection</h2>
+  <p id="print-meta"></p>
+</div>
+
+<main>
+  <h1 class="page-title">Scope 3 Data — PLT-01</h1>
+  <p class="page-sub">Fill all applicable categories for your facility. Submit once at the end. All 15 GHG Protocol categories included.</p>
+
+  <form id="main-form" novalidate>
+    <input type="hidden" id="f-plant-id" value="PLT-01"/>
+    <input type="hidden" id="f-plant-name" value="Plant 1 — Manufacturing"/>
+
+    <!-- RESPONDENT -->
+    <div class="section" style="animation-delay:0.03s">
+      <div class="section-header" onclick="toggleSection(this)">
+        <div class="section-header-left">
+          <span class="cat-badge" style="background:var(--red)">INFO</span>
+          <div>
+            <div class="section-title">Respondent Information</div>
+            <div class="section-sub">Your name, department and reporting period</div>
+          </div>
+        </div>
+        <span class="chevron">▾</span>
+      </div>
+      <div class="section-body open">
+        <div class="fg fg-3">
+          <div class="field">
+            <label>Full Name <span class="req">*</span></label>
+            <input type="text" id="resp-name" placeholder="e.g. Rahul Nair"/>
+          </div>
+          <div class="field">
+            <label>Department <span class="req">*</span></label>
+            <select id="resp-dept">
+              <option value="">Select…</option>
+              <option>Procurement</option><option>Operations</option><option>Logistics</option>
+              <option>HR & Admin</option><option>Finance</option><option>Sales & Marketing</option>
+              <option>R&D</option><option>Facilities</option><option>Supply Chain</option><option>Other</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Reporting Period <span class="req">*</span></label>
+            <select id="resp-fy">
+              <option>FY 2022-23</option><option>FY 2023-24</option>
+              <option selected>FY 2024-25</option><option>FY 2025-26</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CAT 1 -->
+    <div class="section" style="animation-delay:0.06s">
+      <div class="section-header" onclick="toggleSection(this)">
+        <div class="section-header-left">
+          <span class="cat-badge">Cat 1</span>
+          <div>
+            <div class="section-title">Purchased Goods & Services</div>
+            <div class="section-sub">Upstream · Copper, aluminium, plastics, PCBs, packaging</div>
+          </div>
+        </div><span class="chevron">▾</span>
+      </div>
+      <div class="section-body" id="body-cat1">
+        <div id="rows-cat1">
+          <div class="row-entry">
+            <div class="fg fg-3">
+              <div class="field"><label>Material / Service<span class="req">*</span></label><input type="text" name="cat1_material[]" placeholder="e.g. Copper wire"/></div>
+              <div class="field"><label>Supplier Name</label><input type="text" name="cat1_supplier[]" placeholder="Supplier name"/></div>
+              <div class="field"><label>Quantity</label><input type="number" name="cat1_qty[]" placeholder="Amount" min="0"/></div>
+              <div class="field"><label>Unit</label><select name="cat1_unit[]"><option value="">Select</option><option>kg</option><option>tonnes</option><option>units</option><option>litres</option><option>m²</option></select></div>
+              <div class="field"><label>Spend (INR)</label><input type="number" name="cat1_spend[]" placeholder="0.00" min="0"/></div>
+              <div class="field"><label>Reporting Period</label><input type="month" name="cat1_period[]"/></div>
+              <div class="field span3"><label>Invoice / Data Source Ref.</label><input type="text" name="cat1_source[]" placeholder="Invoice number or reference"/></div>
+            </div>
+          </div>
+        </div>
+        <button type="button" class="add-row-btn" onclick="addRow('cat1')">＋ Add another item</button>
+      </div>
+    </div>
+
+    <!-- CAT 2 -->
+    <div class="section" style="animation-delay:0.09s">
+      <div class="section-header" onclick="toggleSection(this)">
+        <div class="section-header-left">
+          <span class="cat-badge">Cat 2</span>
+          <div>
+            <div class="section-title">Capital Goods</div>
+            <div class="section-sub">Upstream · Machinery, plant equipment, IT assets</div>
+          </div>
+        </div><span class="chevron">▾</span>
+      </div>
+      <div class="section-body" id="body-cat2">
+        <div id="rows-cat2">
+          <div class="row-entry">
+            <div class="fg fg-3">
+              <div class="field"><label>Asset / Equipment<span class="req">*</span></label><input type="text" name="cat2_asset[]" placeholder="e.g. Compressor, Generator"/></div>
+              <div class="field"><label>Supplier Name</label><input type="text" name="cat2_supplier[]" placeholder="Supplier name"/></div>
+              <div class="field"><label>Spend (INR)</label><input type="number" name="cat2_spend[]" placeholder="0.00" min="0"/></div>
+              <div class="field"><label>Quantity (units)</label><input type="number" name="cat2_qty[]" placeholder="No. of units" min="1"/></div>
+              <div class="field"><label>Useful Life (years)</label><input type="number" name="cat2_life[]" placeholder="e.g. 10" min="1"/></div>
+              <div class="field"><label>Reporting Period</label><input type="month" name="cat2_period[]"/></div>
+              <div class="field span3"><label>Invoice / PO Reference</label><input type="text" name="cat2_ref[]" placeholder="Invoice or PO number"/></div>
+            </div>
+          </div>
+        </div>
+        <button type="button" class="add-row-btn" onclick="addRow('cat2')">＋ Add another asset</button>
+      </div>
+    </div>
+
+    <!-- CAT 3 -->
+    <div class="section" style="animation-delay:0.12s">
+      <div class="section-header" onclick="toggleSection(this)">
+        <div class="section-header-left">
+          <span class="cat-badge">Cat 3</span>
+          <div>
+            <div class="section-title">Fuel & Energy Related Activities</div>
+            <div class="section-sub">Upstream · Extraction and transmission losses</div>
+          </div>
+        </div><span class="chevron">▾</span>
+      </div>
+      <div class="section-body" id="body-cat3">
+        <div id="rows-cat3">
+          <div class="row-entry">
+            <div class="fg fg-3">
+              <div class="field"><label>Energy Type<span class="req">*</span></label><select name="cat3_type[]"><option value="">Select</option><option>Grid Electricity</option><option>Diesel</option><option>LPG</option><option>LNG</option><option>Coal</option><option>Biomass</option></select></div>
+              <div class="field"><label>Quantity Consumed</label><input type="number" name="cat3_qty[]" placeholder="kWh or Litres" min="0"/></div>
+              <div class="field"><label>Grid Region</label><select name="cat3_region[]"><option value="">Select</option><option>Northern</option><option>Southern</option><option>Eastern</option><option>Western</option><option>North-Eastern</option><option>N/A</option></select></div>
+              <div class="field"><label>Emission Factor Applied</label><input type="text" name="cat3_factor[]" placeholder="e.g. MoEFCC / DEFRA"/></div>
+              <div class="field"><label>Reporting Period</label><input type="month" name="cat3_period[]"/></div>
+              <div class="field"><label>Data Source</label><input type="text" name="cat3_source[]" placeholder="Source reference"/></div>
+            </div>
+          </div>
+        </div>
+        <button type="button" class="add-row-btn" onclick="addRow('cat3')">＋ Add another energy type</button>
+      </div>
+    </div>
+
+    <!-- CAT 4 -->
+    <div class="section" style="animation-delay:0.15s">
+      <div class="section-header" onclick="toggleSection(this)">
+        <div class="section-header-left">
+          <span class="cat-badge">Cat 4</span>
+          <div>
+            <div class="section-title">Upstream Transportation & Distribution</div>
+            <div class="section-sub">Upstream · Inbound freight, 3PL logistics</div>
+          </div>
+        </div><span class="chevron">▾</span>
+      </div>
+      <div class="section-body" id="body-cat4">
+        <div id="rows-cat4">
+          <div class="row-entry">
+            <div class="fg fg-3">
+              <div class="field"><label>Origin<span class="req">*</span></label><input type="text" name="cat4_origin[]" placeholder="City or supplier location"/></div>
+              <div class="field"><label>Destination Facility</label><input type="text" name="cat4_dest[]" placeholder="Your facility name"/></div>
+              <div class="field"><label>Mode of Transport</label><select name="cat4_mode[]"><option value="">Select</option><option>Road — Truck</option><option>Rail</option><option>Air</option><option>Sea</option><option>Pipeline</option></select></div>
+              <div class="field"><label>Weight (tonnes)</label><input type="number" name="cat4_weight[]" placeholder="0.00" min="0" step="0.01"/></div>
+              <div class="field"><label>Distance (km)</label><input type="number" name="cat4_dist[]" placeholder="0" min="0"/></div>
+              <div class="field"><label>Reporting Period</label><input type="month" name="cat4_period[]"/></div>
+              <div class="field span3"><label>Logistics Partner / Invoice Ref.</label><input type="text" name="cat4_ref[]" placeholder="Partner name or invoice number"/></div>
+            </div>
+          </div>
+        </div>
+        <button type="button" class="add-row-btn" onclick="addRow('cat4')">＋ Add another shipment</button>
+      </div>
+    </div>
+
+    <!-- CAT 5 -->
+    <div class="section" style="animation-delay:0.18s">
+      <div class="section-header" onclick="toggleSection(this)">
+        <div class="section-header-left">
+          <span class="cat-badge">Cat 5</span>
+          <div>
+            <div class="section-title">Waste Generated in Operations</div>
+            <div class="section-sub">Upstream · Solid waste, e-waste, effluent treatment</div>
+          </div>
+        </div><span class="chevron">▾</span>
+      </div>
+      <div class="section-body" id="body-cat5">
+        <div id="rows-cat5">
+          <div class="row-entry">
+            <div class="fg fg-3">
+              <div class="field"><label>Waste Type<span class="req">*</span></label><select name="cat5_type[]"><option value="">Select</option><option>Hazardous — Liquid</option><option>Hazardous — Solid</option><option>Non-hazardous — Organic</option><option>Non-hazardous — Inert</option><option>E-waste</option><option>Metal Scrap</option><option>Plastic Waste</option><option>Paper / Cardboard</option></select></div>
+              <div class="field"><label>Quantity</label><input type="number" name="cat5_qty[]" placeholder="Amount" min="0" step="0.01"/></div>
+              <div class="field"><label>Unit</label><select name="cat5_unit[]"><option value="">Select</option><option>kg</option><option>tonnes</option><option>litres</option></select></div>
+              <div class="field"><label>Disposal Method</label><select name="cat5_disposal[]"><option value="">Select</option><option>Landfill</option><option>Incineration</option><option>Recycling</option><option>Composting</option><option>Wastewater Treatment</option><option>Co-processing</option></select></div>
+              <div class="field"><label>Reporting Period</label><input type="month" name="cat5_period[]"/></div>
+              <div class="field"><label>Handler / Certificate Ref.</label><input type="text" name="cat5_ref[]" placeholder="Handler or cert no."/></div>
+            </div>
+          </div>
+        </div>
+        <button type="button" class="add-row-btn" onclick="addRow('cat5')">＋ Add another waste type</button>
+      </div>
+    </div>
+
+    <!-- CAT 6 -->
+    <div class="section" style="animation-delay:0.21s">
+      <div class="section-header" onclick="toggleSection(this)">
+        <div class="section-header-left">
+          <span class="cat-badge">Cat 6</span>
+          <div>
+            <div class="section-title">Business Travel</div>
+            <div class="section-sub">Upstream · Flights, trains, hotels, cab bookings</div>
+          </div>
+        </div><span class="chevron">▾</span>
+      </div>
+      <div class="section-body" id="body-cat6">
+        <div id="rows-cat6">
+          <div class="row-entry">
+            <div class="fg fg-3">
+              <div class="field"><label>Employee / Dept.<span class="req">*</span></label><input type="text" name="cat6_emp[]" placeholder="EMP-001 or Department"/></div>
+              <div class="field"><label>Travel Mode</label><select name="cat6_mode[]"><option value="">Select</option><option>Air — Domestic</option><option>Air — International</option><option>Rail</option><option>Road — Car</option><option>Road — Bus</option></select></div>
+              <div class="field"><label>Origin</label><input type="text" name="cat6_origin[]" placeholder="Departure city"/></div>
+              <div class="field"><label>Destination</label><input type="text" name="cat6_dest[]" placeholder="Arrival city"/></div>
+              <div class="field"><label>Distance (km)</label><input type="number" name="cat6_dist[]" placeholder="0" min="0"/></div>
+              <div class="field"><label>Reporting Period</label><input type="month" name="cat6_period[]"/></div>
+              <div class="field span3"><label>Expense / Booking Reference</label><input type="text" name="cat6_ref[]" placeholder="Booking ID or expense claim"/></div>
+            </div>
+          </div>
+        </div>
+        <button type="button" class="add-row-btn" onclick="addRow('cat6')">＋ Add another trip</button>
+      </div>
+    </div>
+
+    <!-- CAT 7 -->
+    <div class="section" style="animation-delay:0.24s">
+      <div class="section-header" onclick="toggleSection(this)">
+        <div class="section-header-left">
+          <span class="cat-badge">Cat 7</span>
+          <div>
+            <div class="section-title">Employee Commuting</div>
+            <div class="section-sub">Upstream · Daily commute of all employees</div>
+          </div>
+        </div><span class="chevron">▾</span>
+      </div>
+      <div class="section-body" id="body-cat7">
+        <div id="rows-cat7">
+          <div class="row-entry">
+            <div class="fg fg-3">
+              <div class="field"><label>No. of Employees<span class="req">*</span></label><input type="number" name="cat7_emp[]" placeholder="0" min="0"/></div>
+              <div class="field"><label>Primary Commute Mode</label><select name="cat7_mode[]"><option value="">Select</option><option>Personal Car</option><option>Two-wheeler</option><option>Company Bus</option><option>Public Bus</option><option>Metro / Rail</option><option>Walking / Cycling</option></select></div>
+              <div class="field"><label>Avg. One-way Distance (km)</label><input type="number" name="cat7_dist[]" placeholder="0.0" min="0" step="0.1"/></div>
+              <div class="field"><label>Working Days / Month</label><input type="number" name="cat7_days[]" placeholder="26" min="1" max="31"/></div>
+              <div class="field"><label>Reporting Period</label><input type="month" name="cat7_period[]"/></div>
+              <div class="field"><label>Data Collection Method</label><select name="cat7_method[]"><option value="">Select</option><option>Employee Survey</option><option>HR Records</option><option>Estimate</option></select></div>
+            </div>
+          </div>
+        </div>
+        <button type="button" class="add-row-btn" onclick="addRow('cat7')">＋ Add another commute group</button>
+      </div>
+    </div>
+
+    <!-- CAT 8 -->
+    <div class="section" style="animation-delay:0.27s">
+      <div class="section-header" onclick="toggleSection(this)">
+        <div class="section-header-left">
+          <span class="cat-badge">Cat 8</span>
+          <div>
+            <div class="section-title">Upstream Leased Assets</div>
+            <div class="section-sub">Upstream · Leased offices, warehouses, depots</div>
+          </div>
+        </div><span class="chevron">▾</span>
+      </div>
+      <div class="section-body" id="body-cat8">
+        <div id="rows-cat8">
+          <div class="row-entry">
+            <div class="fg fg-3">
+              <div class="field"><label>Asset Type<span class="req">*</span></label><input type="text" name="cat8_asset[]" placeholder="e.g. Warehouse, Office"/></div>
+              <div class="field"><label>Location</label><input type="text" name="cat8_location[]" placeholder="City or address"/></div>
+              <div class="field"><label>Area (m²)</label><input type="number" name="cat8_area[]" placeholder="0" min="0"/></div>
+              <div class="field"><label>Annual Lease Cost (INR)</label><input type="number" name="cat8_cost[]" placeholder="0.00" min="0"/></div>
+              <div class="field"><label>Reporting Period</label><input type="month" name="cat8_period[]"/></div>
+              <div class="field"><label>Lease Agreement Ref.</label><input type="text" name="cat8_ref[]" placeholder="Agreement reference"/></div>
+            </div>
+          </div>
+        </div>
+        <button type="button" class="add-row-btn" onclick="addRow('cat8')">＋ Add another leased asset</button>
+      </div>
+    </div>
+
+    <!-- CAT 9 -->
+    <div class="section" style="animation-delay:0.30s">
+      <div class="section-header" onclick="toggleSection(this)">
+        <div class="section-header-left">
+          <span class="cat-badge">Cat 9</span>
+          <div>
+            <div class="section-title">Downstream Transportation & Distribution</div>
+            <div class="section-sub">Downstream · Outbound freight to customers</div>
+          </div>
+        </div><span class="chevron">▾</span>
+      </div>
+      <div class="section-body" id="body-cat9">
+        <div id="rows-cat9">
+          <div class="row-entry">
+            <div class="fg fg-3">
+              <div class="field"><label>Origin<span class="req">*</span></label><input type="text" name="cat9_origin[]" placeholder="Dispatch location"/></div>
+              <div class="field"><label>Destination</label><input type="text" name="cat9_dest[]" placeholder="Customer / distributor location"/></div>
+              <div class="field"><label>Mode of Transport</label><select name="cat9_mode[]"><option value="">Select</option><option>Road — Truck</option><option>Rail</option><option>Air</option><option>Sea</option></select></div>
+              <div class="field"><label>Weight (tonnes)</label><input type="number" name="cat9_weight[]" placeholder="0.00" min="0" step="0.01"/></div>
+              <div class="field"><label>Distance (km)</label><input type="number" name="cat9_dist[]" placeholder="0" min="0"/></div>
+              <div class="field"><label>Reporting Period</label><input type="month" name="cat9_period[]"/></div>
+            </div>
+          </div>
+        </div>
+        <button type="button" class="add-row-btn" onclick="addRow('cat9')">＋ Add another shipment</button>
+      </div>
+    </div>
+
+    <!-- CAT 10 -->
+    <div class="section" style="animation-delay:0.33s">
+      <div class="section-header" onclick="toggleSection(this)">
+        <div class="section-header-left">
+          <span class="cat-badge">Cat 10</span>
+          <div>
+            <div class="section-title">Processing of Sold Products</div>
+            <div class="section-sub">Downstream · Customer processing of intermediate goods</div>
+          </div>
+        </div><span class="chevron">▾</span>
+      </div>
+      <div class="section-body" id="body-cat10">
+        <div id="rows-cat10">
+          <div class="row-entry">
+            <div class="fg fg-3">
+              <div class="field"><label>Product / Intermediate Good<span class="req">*</span></label><input type="text" name="cat10_product[]" placeholder="e.g. Semi-finished wiring"/></div>
+              <div class="field"><label>Customer / Processor</label><input type="text" name="cat10_customer[]" placeholder="Customer name"/></div>
+              <div class="field"><label>Quantity Sold</label><input type="number" name="cat10_qty[]" placeholder="0" min="0"/></div>
+              <div class="field"><label>Unit</label><select name="cat10_unit[]"><option value="">Select</option><option>kg</option><option>tonnes</option><option>units</option></select></div>
+              <div class="field"><label>Reporting Period</label><input type="month" name="cat10_period[]"/></div>
+              <div class="field"><label>Invoice Reference</label><input type="text" name="cat10_ref[]" placeholder="Invoice or order reference"/></div>
+            </div>
+          </div>
+        </div>
+        <button type="button" class="add-row-btn" onclick="addRow('cat10')">＋ Add another product</button>
+      </div>
+    </div>
+
+    <!-- CAT 11 -->
+    <div class="section" style="animation-delay:0.36s">
+      <div class="section-header" onclick="toggleSection(this)">
+        <div class="section-header-left">
+          <span class="cat-badge">Cat 11</span>
+          <div>
+            <div class="section-title">Use of Sold Products</div>
+            <div class="section-sub">Downstream · Energy consumed by fans, wiring, appliances in-use</div>
+          </div>
+        </div><span class="chevron">▾</span>
+      </div>
+      <div class="section-body" id="body-cat11">
+        <div id="rows-cat11">
+          <div class="row-entry">
+            <div class="fg fg-3">
+              <div class="field"><label>Product Category<span class="req">*</span></label><input type="text" name="cat11_product[]" placeholder="e.g. Ceiling Fan, Stabilizer"/></div>
+              <div class="field"><label>Units Sold</label><input type="number" name="cat11_units[]" placeholder="0" min="0"/></div>
+              <div class="field"><label>Rated Power (Watts)</label><input type="number" name="cat11_power[]" placeholder="0" min="0"/></div>
+              <div class="field"><label>Avg. Usage Hours / Day</label><input type="number" name="cat11_hours[]" placeholder="0" min="0" max="24" step="0.5"/></div>
+              <div class="field"><label>Product Lifetime (years)</label><input type="number" name="cat11_life[]" placeholder="e.g. 10" min="1"/></div>
+              <div class="field"><label>Reporting Period</label><input type="month" name="cat11_period[]"/></div>
+              <div class="field span3"><label>Data Source (spec sheet / survey)</label><input type="text" name="cat11_source[]" placeholder="Spec sheet ref or survey"/></div>
+            </div>
+          </div>
+        </div>
+        <button type="button" class="add-row-btn" onclick="addRow('cat11')">＋ Add another product</button>
+      </div>
+    </div>
+
+    <!-- CAT 12 -->
+    <div class="section" style="animation-delay:0.39s">
+      <div class="section-header" onclick="toggleSection(this)">
+        <div class="section-header-left">
+          <span class="cat-badge">Cat 12</span>
+          <div>
+            <div class="section-title">End-of-Life Treatment of Sold Products</div>
+            <div class="section-sub">Downstream · Product disposal, e-waste recycling</div>
+          </div>
+        </div><span class="chevron">▾</span>
+      </div>
+      <div class="section-body" id="body-cat12">
+        <div id="rows-cat12">
+          <div class="row-entry">
+            <div class="fg fg-3">
+              <div class="field"><label>Product Type<span class="req">*</span></label><input type="text" name="cat12_product[]" placeholder="e.g. Fans, Cables"/></div>
+              <div class="field"><label>Quantity (tonnes)</label><input type="number" name="cat12_qty[]" placeholder="0.00" min="0" step="0.01"/></div>
+              <div class="field"><label>Disposal Method</label><select name="cat12_method[]"><option value="">Select</option><option>Landfill</option><option>Incineration</option><option>Recycling</option><option>E-waste Processing</option></select></div>
+              <div class="field"><label>Reporting Period</label><input type="month" name="cat12_period[]"/></div>
+              <div class="field span2"><label>Data Source / Reference</label><input type="text" name="cat12_ref[]" placeholder="Source or reference"/></div>
+            </div>
+          </div>
+        </div>
+        <button type="button" class="add-row-btn" onclick="addRow('cat12')">＋ Add another product type</button>
+      </div>
+    </div>
+
+    <!-- CAT 13 -->
+    <div class="section" style="animation-delay:0.42s">
+      <div class="section-header" onclick="toggleSection(this)">
+        <div class="section-header-left">
+          <span class="cat-badge">Cat 13</span>
+          <div>
+            <div class="section-title">Downstream Leased Assets</div>
+            <div class="section-sub">Downstream · Assets owned but operated by lessees</div>
+          </div>
+        </div><span class="chevron">▾</span>
+      </div>
+      <div class="section-body" id="body-cat13">
+        <div id="rows-cat13">
+          <div class="row-entry">
+            <div class="fg fg-3">
+              <div class="field"><label>Asset Type<span class="req">*</span></label><input type="text" name="cat13_asset[]" placeholder="e.g. Company vehicle, equipment"/></div>
+              <div class="field"><label>Lessee Name</label><input type="text" name="cat13_lessee[]" placeholder="Lessee or customer"/></div>
+              <div class="field"><label>Asset Value (INR)</label><input type="number" name="cat13_value[]" placeholder="0.00" min="0"/></div>
+              <div class="field"><label>Reporting Period</label><input type="month" name="cat13_period[]"/></div>
+              <div class="field span2"><label>Lease Agreement Ref.</label><input type="text" name="cat13_ref[]" placeholder="Agreement reference"/></div>
+            </div>
+          </div>
+        </div>
+        <button type="button" class="add-row-btn" onclick="addRow('cat13')">＋ Add another asset</button>
+      </div>
+    </div>
+
+    <!-- CAT 14 -->
+    <div class="section" style="animation-delay:0.45s">
+      <div class="section-header" onclick="toggleSection(this)">
+        <div class="section-header-left">
+          <span class="cat-badge">Cat 14</span>
+          <div>
+            <div class="section-title">Franchises</div>
+            <div class="section-sub">Downstream · Franchise operations energy and fuel</div>
+          </div>
+        </div><span class="chevron">▾</span>
+      </div>
+      <div class="section-body" id="body-cat14">
+        <div id="rows-cat14">
+          <div class="row-entry">
+            <div class="fg fg-3">
+              <div class="field"><label>Franchise Name<span class="req">*</span></label><input type="text" name="cat14_name[]" placeholder="Franchise name or location"/></div>
+              <div class="field"><label>Energy Consumed (kWh)</label><input type="number" name="cat14_energy[]" placeholder="0" min="0"/></div>
+              <div class="field"><label>Fuel Consumed (litres)</label><input type="number" name="cat14_fuel[]" placeholder="0" min="0"/></div>
+              <div class="field"><label>Reporting Period</label><input type="month" name="cat14_period[]"/></div>
+              <div class="field span2"><label>Data Source / Reference</label><input type="text" name="cat14_ref[]" placeholder="Source or reference"/></div>
+            </div>
+          </div>
+        </div>
+        <button type="button" class="add-row-btn" onclick="addRow('cat14')">＋ Add another franchise</button>
+      </div>
+    </div>
+
+    <!-- CAT 15 -->
+    <div class="section" style="animation-delay:0.48s">
+      <div class="section-header" onclick="toggleSection(this)">
+        <div class="section-header-left">
+          <span class="cat-badge">Cat 15</span>
+          <div>
+            <div class="section-title">Investments</div>
+            <div class="section-sub">Downstream · Financed emissions from investments</div>
+          </div>
+        </div><span class="chevron">▾</span>
+      </div>
+      <div class="section-body" id="body-cat15">
+        <div id="rows-cat15">
+          <div class="row-entry">
+            <div class="fg fg-3">
+              <div class="field"><label>Investee Company<span class="req">*</span></label><input type="text" name="cat15_company[]" placeholder="Company name"/></div>
+              <div class="field"><label>Investment Value (INR Cr)</label><input type="number" name="cat15_value[]" placeholder="0.00" min="0" step="0.01"/></div>
+              <div class="field"><label>Ownership Share (%)</label><input type="number" name="cat15_share[]" placeholder="0.0" min="0" max="100" step="0.1"/></div>
+              <div class="field"><label>Reporting Period</label><input type="month" name="cat15_period[]"/></div>
+              <div class="field span2"><label>Data Source / Reference</label><input type="text" name="cat15_ref[]" placeholder="Annual report or reference"/></div>
+            </div>
+          </div>
+        </div>
+        <button type="button" class="add-row-btn" onclick="addRow('cat15')">＋ Add another investment</button>
+      </div>
+    </div>
+
+    <!-- REMARKS -->
+    <div class="section" style="animation-delay:0.51s">
+      <div class="section-header open" onclick="toggleSection(this)">
+        <div class="section-header-left">
+          <span class="cat-badge" style="background:var(--muted)">NOTE</span>
+          <div>
+            <div class="section-title">Additional Remarks & Assumptions</div>
+            <div class="section-sub">Data gaps, methodology, special circumstances</div>
+          </div>
+        </div><span class="chevron">▾</span>
+      </div>
+      <div class="section-body open">
+        <div class="fg fg-2">
+          <div class="field">
+            <label>General Remarks</label>
+            <textarea id="f-remarks" placeholder="Note any data gaps, estimation methods used, or special circumstances…"></textarea>
+          </div>
+          <div class="field">
+            <label>Data Quality Overall</label>
+            <select id="f-dq">
+              <option value="">Select overall data quality…</option>
+              <option>Measured (Primary Data)</option>
+              <option>Calculated (Secondary Data)</option>
+              <option>Estimated</option>
+              <option>Mixed — Measured + Estimated</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </form>
+</main>
+
+<!-- SUBMIT BAR -->
+<div class="submit-bar">
+  <div class="submit-info">Submitting for: <strong>PLT-01 &nbsp;·&nbsp; Plant 1 — Manufacturing</strong></div>
+  <div style="display:flex;gap:12px;align-items:center">
+    <button class="btn-print" onclick="printForm()">🖨 Print Form</button>
+    <button class="btn-submit" id="submit-btn" onclick="openPreview()">Preview & Submit →</button>
+  </div>
+</div>
+
+<!-- PREVIEW OVERLAY -->
+<div class="preview-overlay" id="preview-overlay">
+  <div class="preview-card">
+    <div class="prev-header">
+      <img src="data:image/png;base64,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" style="height:46px;width:auto;" alt="V Guard"/>
+      <div class="prev-header-right">
+        <div class="ph-label">Scope 3 Submission Preview</div>
+        <div class="ph-plant" id="prev-plant-label"></div>
+      </div>
+    </div>
+    <div class="prev-body">
+      <div class="prev-ref">
+        <div>
+          <div class="ref-label">Reference Code</div>
+          <div class="ref-code" id="prev-ref-code"></div>
+        </div>
+        <div class="ref-ts" id="prev-timestamp"></div>
+      </div>
+
+      <div class="prev-section-title">Respondent</div>
+      <div class="prev-grid">
+        <div class="prev-field"><span class="pf-label">Name</span><span class="pf-val" id="prev-name"></span></div>
+        <div class="prev-field"><span class="pf-label">Department</span><span class="pf-val" id="prev-dept"></span></div>
+        <div class="prev-field"><span class="pf-label">Reporting Period</span><span class="pf-val" id="prev-fy"></span></div>
+        <div class="prev-field"><span class="pf-label">Data Quality</span><span class="pf-val" id="prev-dq"></span></div>
+      </div>
+
+      <div class="prev-section-title">Categories with Data</div>
+      <div class="prev-cats">
+        <div class="prev-cats-title">The following categories have been filled</div>
+        <div id="prev-cat-list"></div>
+      </div>
+
+      <div class="prev-section-title">Remarks</div>
+      <div class="prev-field"><span class="pf-val" id="prev-remarks" style="font-size:0.83rem;color:var(--muted)"></span></div>
+
+      <div class="prev-tco2e">
+        <div>
+          <div class="t-label">Total Entries Submitted</div>
+          <div class="t-unit">Across all filled categories</div>
+        </div>
+        <div class="t-val" id="prev-entry-count"></div>
+      </div>
+    </div>
+    <div class="prev-footer">
+      <button class="btn-cancel" onclick="closePreview()">← Edit</button>
+      <button class="btn-print-card" onclick="printCard()">🖨 Print Card</button>
+      <button class="btn-confirm" id="confirm-btn" onclick="confirmSubmit()">Confirm & Submit →</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div id="toast" class="toast" style="display:none"></div>
+
+<script>
+const PLANT_ID   = "PLT-01";
+const PLANT_NAME = "Plant 1 — Manufacturing";
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwSBO3Zc3oDMUyMzI9snOJP1wgCOv3A9P1L8fkxzpUzYdA7MtYTjauOjipoUoAnt6PlLw/exec";
+const STORAGE_KEY = "vg_s3_" + PLANT_ID;
+
+// ── ACCORDION ────────────────────────────────────────────────────────
+function toggleSection(header) {
+  const body = header.nextElementSibling;
+  const open = body.classList.toggle("open");
+  header.classList.toggle("open", open);
+  updateProgress();
+}
+
+// ── PROGRESS ─────────────────────────────────────────────────────────
+const CAT_IDS = ["cat1","cat2","cat3","cat4","cat5","cat6","cat7","cat8","cat9","cat10","cat11","cat12","cat13","cat14","cat15"];
+function updateProgress() {
+  let filled = 0;
+  CAT_IDS.forEach(id => {
+    const rows = document.getElementById("rows-" + id);
+    if (!rows) return;
+    const inputs = rows.querySelectorAll("input, select");
+    for (const inp of inputs) { if (inp.value.trim()) { filled++; return; } }
+  });
+  const pct = Math.round((filled / CAT_IDS.length) * 100);
+  document.getElementById("prog-fill").style.width = pct + "%";
+  document.getElementById("prog-label").textContent = filled + " of 15 categories with data";
+}
+document.getElementById("main-form").addEventListener("input", updateProgress);
+
+// ── ADD ROW ───────────────────────────────────────────────────────────
+const rowTemplates = {};
+CAT_IDS.forEach(id => {
+  const container = document.getElementById("rows-" + id);
+  if (container) rowTemplates[id] = container.querySelector(".row-entry").cloneNode(true);
+});
+
+function addRow(cat) {
+  const container = document.getElementById("rows-" + cat);
+  const clone = rowTemplates[cat].cloneNode(true);
+  clone.querySelectorAll("input, select, textarea").forEach(el => el.value = "");
+  const btn = document.createElement("button");
+  btn.type = "button"; btn.className = "row-remove"; btn.textContent = "✕";
+  btn.onclick = () => clone.remove();
+  clone.appendChild(btn);
+  container.appendChild(clone);
+}
+
+// ── COLLECT ALL FORM DATA ─────────────────────────────────────────────
+function collectFormData() {
+  const formData = new FormData(document.getElementById("main-form"));
+  const payload = {
+    plantId: PLANT_ID, plantName: PLANT_NAME,
+    respondentName: document.getElementById("resp-name").value.trim(),
+    department: document.getElementById("resp-dept").value,
+    financialYear: document.getElementById("resp-fy").value,
+    remarks: document.getElementById("f-remarks").value.trim(),
+    dataQuality: document.getElementById("f-dq").value,
+    timestamp: Date.now(),
+    categories: {}
+  };
+  // Collect per-category arrays
+  const raw = {};
+  formData.forEach((val, key) => {
+    if (!raw[key]) raw[key] = [];
+    raw[key].push(val);
+  });
+  CAT_IDS.forEach(cat => {
+    // Check if this category has any data
+    const keys = Object.keys(raw).filter(k => k.startsWith(cat + "_"));
+    if (keys.length === 0) return;
+    const firstKey = keys[0];
+    const rowCount = raw[firstKey] ? raw[firstKey].length : 0;
+    const rows = [];
+    for (let i = 0; i < rowCount; i++) {
+      const row = {};
+      keys.forEach(k => { row[k.replace(cat + "_", "").replace("[]", "")] = raw[k][i] || ""; });
+      // Only include row if at least one field has data
+      const hasData = Object.values(row).some(v => v.trim && v.trim() !== "");
+      if (hasData) rows.push(row);
+    }
+    if (rows.length > 0) payload.categories[cat] = rows;
+  });
+  return payload;
+}
+
+// ── PREVIEW ───────────────────────────────────────────────────────────
+let pendingPayload = null;
+
+function openPreview() {
+  const name = document.getElementById("resp-name").value.trim();
+  const dept = document.getElementById("resp-dept").value;
+  if (!name || !dept) {
+    showToast("Please fill your Name and Department first.", "err");
+    return;
+  }
+  pendingPayload = collectFormData();
+  const refCode = "REF-" + PLANT_ID + "-" + Date.now();
+  pendingPayload.ref = refCode;
+
+  const now = new Date();
+  document.getElementById("prev-plant-label").textContent = PLANT_ID + " — " + PLANT_NAME;
+  document.getElementById("prev-ref-code").textContent = refCode;
+  document.getElementById("prev-timestamp").textContent = now.toLocaleString("en-IN");
+  document.getElementById("prev-name").textContent = pendingPayload.respondentName || "—";
+  document.getElementById("prev-dept").textContent = pendingPayload.department || "—";
+  document.getElementById("prev-fy").textContent = pendingPayload.financialYear || "—";
+  document.getElementById("prev-dq").textContent = pendingPayload.dataQuality || "—";
+  document.getElementById("prev-remarks").textContent = pendingPayload.remarks || "None";
+
+  const cats = Object.keys(pendingPayload.categories);
+  const CAT_NAMES = {
+    cat1:"Cat 1 — Purchased Goods & Services", cat2:"Cat 2 — Capital Goods",
+    cat3:"Cat 3 — Fuel & Energy", cat4:"Cat 4 — Upstream Transportation",
+    cat5:"Cat 5 — Waste in Operations", cat6:"Cat 6 — Business Travel",
+    cat7:"Cat 7 — Employee Commuting", cat8:"Cat 8 — Upstream Leased Assets",
+    cat9:"Cat 9 — Downstream Transportation", cat10:"Cat 10 — Processing of Sold Products",
+    cat11:"Cat 11 — Use of Sold Products", cat12:"Cat 12 — End-of-Life Treatment",
+    cat13:"Cat 13 — Downstream Leased Assets", cat14:"Cat 14 — Franchises",
+    cat15:"Cat 15 — Investments"
+  };
+  let totalEntries = 0;
+  const catListEl = document.getElementById("prev-cat-list");
+
+  // Field display labels per category
+  const CAT_FIELD_LABELS = {
+    cat1:  {material:"Material",supplier:"Supplier",qty:"Qty",unit:"Unit",spend:"Spend (INR)",period:"Period",source:"Ref"},
+    cat2:  {asset:"Asset",supplier:"Supplier",spend:"Spend (INR)",qty:"Qty",life:"Useful Life",period:"Period",ref:"Ref"},
+    cat3:  {type:"Energy Type",qty:"Qty",region:"Grid Region",factor:"EF Applied",period:"Period",source:"Source"},
+    cat4:  {origin:"Origin",dest:"Destination",mode:"Mode",weight:"Weight (t)",dist:"Distance (km)",period:"Period",ref:"Ref"},
+    cat5:  {type:"Waste Type",qty:"Qty",unit:"Unit",disposal:"Disposal",period:"Period",ref:"Handler Ref"},
+    cat6:  {emp:"Employee/Dept",mode:"Mode",origin:"Origin",dest:"Destination",dist:"Distance (km)",period:"Period",ref:"Booking Ref"},
+    cat7:  {emp:"No. Employees",mode:"Commute Mode",dist:"Avg Distance",days:"Working Days",period:"Period",method:"Method"},
+    cat8:  {asset:"Asset Type",location:"Location",area:"Area (m²)",cost:"Lease Cost",period:"Period",ref:"Agreement Ref"},
+    cat9:  {origin:"Origin",dest:"Destination",mode:"Mode",weight:"Weight (t)",dist:"Distance (km)",period:"Period"},
+    cat10: {product:"Product",customer:"Customer",qty:"Qty",unit:"Unit",period:"Period",ref:"Invoice Ref"},
+    cat11: {product:"Product",units:"Units Sold",power:"Rated Power (W)",hours:"Usage Hrs/Day",life:"Lifetime (yrs)",period:"Period",source:"Source"},
+    cat12: {product:"Product Type",qty:"Qty (t)",method:"Disposal Method",period:"Period",ref:"Ref"},
+    cat13: {asset:"Asset Type",lessee:"Lessee",value:"Asset Value",period:"Period",ref:"Agreement Ref"},
+    cat14: {name:"Franchise Name",energy:"Energy (kWh)",fuel:"Fuel (L)",period:"Period",ref:"Ref"},
+    cat15: {company:"Investee",value:"Investment (INR Cr)",share:"Ownership (%)",period:"Period",ref:"Ref"},
+  };
+
+  if (cats.length === 0) {
+    catListEl.innerHTML = "<div style=\"color:var(--muted);font-size:0.83rem;padding:8px 0\">No category data filled — please go back and fill at least one category.</div>";
+  } else {
+    catListEl.innerHTML = cats.map(c => {
+      const rows = pendingPayload.categories[c];
+      totalEntries += rows.length;
+      const labels = CAT_FIELD_LABELS[c] || {};
+      const rowsHtml = rows.map((row, idx) => {
+        const fields = Object.entries(row)
+          .filter(([k, v]) => v && v.trim && v.trim() !== "")
+          .map(([k, v]) => `<span style="display:inline-flex;flex-direction:column;gap:1px;min-width:100px;max-width:160px">
+            <span style="font-size:0.62rem;color:var(--muted);text-transform:uppercase;font-weight:700;letter-spacing:0.05em">${labels[k]||k}</span>
+            <span style="font-size:0.82rem;color:var(--ink);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${v}</span>
+          </span>`).join("");
+        return `<div style="background:var(--paper);border-radius:6px;padding:10px 12px;margin-top:8px;display:flex;flex-wrap:wrap;gap:12px 20px;">
+          ${rows.length > 1 ? `<div style="width:100%;font-size:0.68rem;color:var(--red);font-weight:700;margin-bottom:2px">Row ${idx+1}</div>` : ""}
+          ${fields || "<span style='color:var(--muted);font-size:0.8rem'>No data</span>"}
+        </div>`;
+      }).join("");
+      return `<div style="margin-bottom:14px">
+        <div class="cat-summary-row">
+          <span class="cat-summary-name">${CAT_NAMES[c]||c}</span>
+          <span class="cat-summary-count">${rows.length} row${rows.length>1?"s":""}</span>
+        </div>
+        ${rowsHtml}
+      </div>`;
+    }).join("");
+  }
+  document.getElementById("prev-entry-count").textContent = totalEntries + " rows";
+
+  document.getElementById("preview-overlay").classList.add("show");
+}
+
+function closePreview() {
+  document.getElementById("preview-overlay").classList.remove("show");
+  pendingPayload = null;
+}
+
+function printCard() {
+  window.print();
+}
+
+async function confirmSubmit() {
+  if (!pendingPayload) return;
+  const cats = Object.keys(pendingPayload.categories);
+  if (cats.length === 0) {
+    showToast("Please fill at least one category before submitting.", "err");
+    return;
+  }
+  const btn = document.getElementById("confirm-btn");
+  btn.disabled = true; btn.textContent = "Submitting…";
+
+  // Send via JSONP — guaranteed cross-origin method for Google Apps Script
+  await new Promise((resolve) => {
+    const callbackName = "cb_" + Date.now();
+    const encoded = encodeURIComponent(JSON.stringify(pendingPayload));
+    const script = document.createElement("script");
+    script.src = SCRIPT_URL + "?callback=" + callbackName + "&data=" + encoded;
+    window[callbackName] = function(response) {
+      delete window[callbackName];
+      if (script.parentNode) script.parentNode.removeChild(script);
+      resolve(response);
+    };
+    script.onerror = function() {
+      delete window[callbackName];
+      if (script.parentNode) script.parentNode.removeChild(script);
+      resolve(null);
+    };
+    setTimeout(() => {
+      if (window[callbackName]) {
+        delete window[callbackName];
+        if (script.parentNode) script.parentNode.removeChild(script);
+        resolve(null);
+      }
+    }, 10000);
+    document.body.appendChild(script);
+  });
+
+  const submittedRef = pendingPayload.ref;
+
+  // Show success screen INSIDE the preview card — don't close it yet
+  document.querySelector(".prev-body").innerHTML = `
+    <div style="text-align:center;padding:48px 24px">
+      <div style="width:72px;height:72px;background:#d1fae5;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;font-size:2rem;">✓</div>
+      <div style="font-family:'Syne',sans-serif;font-size:1.3rem;font-weight:800;color:var(--ink);margin-bottom:10px">Data Submitted!</div>
+      <div style="font-size:0.85rem;color:var(--muted);line-height:1.7;margin-bottom:24px">
+        Your Scope 3 data has been sent to the central repository.<br/>
+        Please print or note your reference code below.
+      </div>
+      <div style="background:#fff8f0;border:2px solid var(--gold);border-radius:10px;padding:14px 20px;display:inline-block;margin-bottom:8px">
+        <div style="font-size:0.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;font-weight:700">Reference Code</div>
+        <div style="font-family:'Syne',sans-serif;font-size:1rem;font-weight:800;color:var(--red);margin-top:4px">${submittedRef}</div>
+      </div>
+      <div style="font-size:0.75rem;color:var(--muted);margin-top:8px">${new Date().toLocaleString("en-IN")}</div>
+    </div>`;
+
+  // Update footer to only show Close button
+  document.querySelector(".prev-footer").innerHTML = `
+    <button class="btn-print-card" onclick="window.print()">🖨 Print Confirmation</button>
+    <button class="btn-confirm" onclick="resetAndClose()">Close ✕</button>`;
+
+  pendingPayload = null;
+}
+
+function resetAndClose() {
+  // Close overlay
+  document.getElementById("preview-overlay").classList.remove("show");
+
+  // Full form reset
+  document.getElementById("main-form").reset();
+
+  // Remove dynamically added rows, keep only first row per category
+  CAT_IDS.forEach(id => {
+    const container = document.getElementById("rows-" + id);
+    if (!container) return;
+    const allRows = container.querySelectorAll(".row-entry");
+    allRows.forEach((row, idx) => {
+      if (idx === 0) {
+        row.querySelectorAll("input, select, textarea").forEach(el => { el.value = ""; });
+      } else {
+        row.remove();
+      }
+    });
+  });
+
+  // Close all accordions
+  document.querySelectorAll(".section-body").forEach(b => b.classList.remove("open"));
+  document.querySelectorAll(".section-header").forEach(h => h.classList.remove("open"));
+
+  // Reset progress bar
+  document.getElementById("prog-fill").style.width = "0%";
+  document.getElementById("prog-label").textContent = "0 of 15 categories with data";
+
+  // Restore preview card internals for next use
+  setTimeout(() => {
+    location.reload();
+  }, 300);
+}
+
+// ── PRINT FORM ────────────────────────────────────────────────────────
+function printForm() {
+  document.querySelectorAll(".section-body").forEach(b => b.classList.add("open"));
+  document.getElementById("print-header").style.display = "block";
+  document.getElementById("print-meta").textContent =
+    PLANT_ID + " · " + PLANT_NAME + " | Printed: " +
+    new Date().toLocaleDateString("en-IN", {day:"2-digit",month:"short",year:"numeric"}) +
+    " | Ref: PRINT-" + PLANT_ID + "-" + Date.now();
+  setTimeout(() => { window.print(); document.getElementById("print-header").style.display = "none"; }, 200);
+}
+
+// ── TOAST ─────────────────────────────────────────────────────────────
+function showToast(msg, type) {
+  const t = document.getElementById("toast");
+  t.textContent = msg; t.className = "toast " + type;
+  t.style.display = "block";
+  setTimeout(() => { t.style.display = "none"; }, 4000);
+}
+</script>
+
+<iframe name="hidden-iframe" style="display:none"></iframe>
+</body>
+</html>
